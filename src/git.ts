@@ -169,7 +169,7 @@ export async function deploy(action: ActionInterface): Promise<Status> {
       Allows the user to specify the root if '.' is provided.
       rsync is used to prevent file duplication. */
     await execute(
-      `rsync -q -av --checksum --progress ${isMkpathSupported && action.targetFolder ? '--mkpath' : ''} ${action.folderPath}/. ${
+      `rsync -av --checksum --progress ${isMkpathSupported && action.targetFolder ? '--mkpath' : ''} ${action.folderPath}/. ${
         action.targetFolder
           ? `${temporaryDeploymentDirectory}/${action.targetFolder}`
           : temporaryDeploymentDirectory
@@ -208,6 +208,14 @@ export async function deploy(action: ActionInterface): Promise<Status> {
       )
     }
 
+    // Commits to GitHub.
+    await execute(
+      `git add --all .`,
+      `${action.workspace}/${temporaryDeploymentDirectory}`,
+      action.silent
+    )
+
+
     // Use git status to check if we have something to commit.
     // Special case is singleCommit with existing history, when
     // we're really interested if the diff against the upstream branch
@@ -216,14 +224,6 @@ export async function deploy(action: ActionInterface): Promise<Status> {
       branchExists && action.singleCommit
         ? `git diff origin/${action.branch}`
         : `git status --porcelain`
-
-    // Commits to GitHub.
-    await execute(
-      `git add --all .`,
-      `${action.workspace}/${temporaryDeploymentDirectory}`,
-      action.silent
-    )
-
     info(`Checking if there are files to commit…`)
 
     const hasFilesToCommit =
