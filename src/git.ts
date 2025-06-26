@@ -208,12 +208,13 @@ export async function deploy(action: ActionInterface): Promise<Status> {
       )
     }
 
-    // Commits to GitHub.
-    await execute(
-      `git add --all .`,
-      `${action.workspace}/${temporaryDeploymentDirectory}`,
-      action.silent
-    )
+    if (action.targetFolder) {
+      await execute(
+        `git add --all ${action.targetFolder}`,
+        `${action.workspace}/${temporaryDeploymentDirectory}`,
+        action.silent
+      )
+    }
 
 
     // Use git status to check if we have something to commit.
